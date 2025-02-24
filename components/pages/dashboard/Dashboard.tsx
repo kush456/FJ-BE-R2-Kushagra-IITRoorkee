@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { Pie, Bar } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { useRouter } from 'next/navigation'
+import ReportDialog from "@/components/dialogs/reporting/ReportDialog"
 
 // Register the required chart elements
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -25,6 +26,8 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
     const [showBothCharts, setShowBothCharts] = useState(false)
     const [showMonthly, setShowMonthly] = useState(false)
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+    const [showDaily, setShowDaily] = useState(true)
+    const [reportDialogOpen, setReportDialogOpen] = useState(false)
     const router = useRouter()
         
     useEffect(() => {
@@ -99,12 +102,30 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
             return acc;
         }, {});
 
+    const monthlyExpenses = transactions
+        .filter(transaction => transaction.type === 'expense')
+        .reduce((acc, transaction) => {
+            const date = new Date(transaction.date);
+            const month = date.toLocaleString('default', { month: 'short' });
+            acc[month] = (acc[month] || 0) + Number(transaction.amount);
+            return acc;
+        }, {});
+
+    const monthlyIncomeData = transactions
+        .filter(transaction => transaction.type === 'income')
+        .reduce((acc, transaction) => {
+            const date = new Date(transaction.date);
+            const month = date.toLocaleString('default', { month: 'short' });
+            acc[month] = (acc[month] || 0) + Number(transaction.amount);
+            return acc;
+        }, {});
+
     const barData = {
-        labels: Object.keys(showSpendingOverview ? dailyExpenses : dailyIncome),
+        labels: Object.keys(showSpendingOverview ? (showDaily ? dailyExpenses : monthlyExpenses) : (showDaily ? dailyIncome : monthlyIncomeData)),
         datasets: [
             {
-                label: showSpendingOverview ? 'Daily Expenses' : 'Daily Income',
-                data: Object.values(showSpendingOverview ? dailyExpenses : dailyIncome),
+                label: showSpendingOverview ? (showDaily ? 'Daily Expenses' : 'Monthly Expenses') : (showDaily ? 'Daily Income' : 'Monthly Income'),
+                data: Object.values(showSpendingOverview ? (showDaily ? dailyExpenses : monthlyExpenses) : (showDaily ? dailyIncome : monthlyIncomeData)),
                 backgroundColor: showSpendingOverview ? '#FF6384' : '#36A2EB',
             },
         ],
@@ -130,8 +151,11 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
               className="border rounded p-2"
             />
           )}
-          <Button size="sm" onClick={() => setShowMonthly(!showMonthly)}>
+          <Button size="sm" className="bg-blue-500 text-white" onClick={() => setShowMonthly(!showMonthly)}>
             {showMonthly ? 'Show Total Transactions' : 'Show Monthly Transactions'}
+          </Button>
+          <Button size="sm" className="bg-blue-500 text-white" onClick={() => setReportDialogOpen(true)}>
+            Generate Report
           </Button>
         </div>
       </div>
@@ -178,9 +202,16 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
         <Card className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">{showSpendingOverview ? 'Spending Overview' : 'Income Overview'}</h3>
-            <Button variant="outline" size="sm" onClick={() => setShowSpendingOverview(!showSpendingOverview)}>
-              {showSpendingOverview ? 'Show Income Overview' : 'Show Spending Overview'}
-            </Button>
+            <div className="flex gap-2">
+              {!showMonthly && (
+                <Button variant="outline" size="sm" onClick={() => setShowDaily(!showDaily)}>
+                  {showDaily ? 'Show Monthly' : 'Show Daily'}
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setShowSpendingOverview(!showSpendingOverview)}>
+                {showSpendingOverview ? 'Show Income Overview' : 'Show Spending Overview'}
+              </Button>
+            </div>
           </div>
           <div className="h-[300px] flex items-center justify-center bg-muted/20 rounded-lg">
             <Bar data={barData} />
@@ -259,6 +290,9 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
           ))}
         </div>
       </Card>
+
+      {/* Report Dialog */}
+      {reportDialogOpen && <ReportDialog onClose={() => setReportDialogOpen(false)} transactions={transactions} />}
     </div>
   )
 }
