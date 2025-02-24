@@ -13,25 +13,22 @@ import {
 } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 interface AddTransactionDialogProps {
   onTransactionAdded: (transaction: any) => void;
+  categories: any[];
 }
 
-export default function AddTransactionDialog({ onTransactionAdded }: AddTransactionDialogProps) {
-  const [newTransaction, setNewTransaction] = useState({
-    type: "",
-    category: "",
-    amount: 0,
-    description: "",
-    date: "",
-  });
+export default function AddTransactionDialog({ onTransactionAdded, categories }: AddTransactionDialogProps) {
+  const [newTransaction, setNewTransaction] = useState({ type: '', category: { id: '', name: '', userId: '', type: '' }, amount: '', description: '', date: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const session = useSession().data;
 
   const handleAddTransaction = async () => {
-    if (!newTransaction.type || !newTransaction.category || !newTransaction.amount || !newTransaction.date) {
+    if (!newTransaction.type || !newTransaction.category.id || !newTransaction.amount || !newTransaction.date) {
       setError("All fields are required");
       return;
     }
@@ -40,7 +37,19 @@ export default function AddTransactionDialog({ onTransactionAdded }: AddTransact
     setError("");
 
     try {
-      const response = await axios.post("/api/transactions", newTransaction);
+      if (!session) {
+        setError("Unauthorized");
+        setLoading(false);
+        return;
+      }
+      const newTransactionWithUser = {
+        ...newTransaction,
+        userId: session.user.id,
+        category: { id: newTransaction.category.id },
+      };
+      //console.log("Sending new transaction: ", newTransactionWithUser);
+      const response = await axios.post('/api/transactions', newTransactionWithUser);
+      //console.log("Response from server: ", response);
       setLoading(false);
 
       if (response.status !== 201) {
@@ -48,20 +57,15 @@ export default function AddTransactionDialog({ onTransactionAdded }: AddTransact
         return;
       }
 
-      // Close the modal and reset the form
       setIsDialogOpen(false);
-      setNewTransaction({
-        type: "",
-        category: "",
-        amount: 0,
-        description: "",
-        date: "",
+      onTransactionAdded({
+        ...response.data,
+        category: newTransaction.category,
+        amount: Number(response.data.amount),
       });
 
-      // Notify parent component about the new transaction
-      onTransactionAdded({ ...response.data, amount: Number(response.data.amount) });
-
     } catch (error) {
+      console.error("Error adding transaction: ", error);
       setLoading(false);
       setError((error as any).response?.data?.error || "Something went wrong");
     }
@@ -81,7 +85,7 @@ export default function AddTransactionDialog({ onTransactionAdded }: AddTransact
         <div className="space-y-4">
           <div>
             <label className="block text-gray-600 mb-1">Type</label>
-            <Select onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value })}>
+            <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -93,18 +97,26 @@ export default function AddTransactionDialog({ onTransactionAdded }: AddTransact
           </div>
           <div>
             <label className="block text-gray-600 mb-1">Category</label>
-            <Input
-              value={newTransaction.category}
-              onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
-              placeholder="Enter category"
-            />
+            <Select value={newTransaction.category.id} onValueChange={(value) => {
+              const selectedCategory = categories.find(category => category.id === value);
+              setNewTransaction({ ...newTransaction, category: selectedCategory });
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="block text-gray-600 mb-1">Amount</label>
             <Input
               type="number"
               value={newTransaction.amount}
-              onChange={(e) => setNewTransaction({ ...newTransaction, amount: parseFloat(e.target.value) })}
+              onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
               placeholder="Enter amount"
             />
           </div>

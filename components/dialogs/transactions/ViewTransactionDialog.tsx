@@ -33,7 +33,7 @@ export default function ViewTransactionDialog({ transaction, children }: ViewTra
           </div>
           <div>
             <label className="block text-gray-600 mb-1">Category</label>
-            <p>{transaction.category}</p>
+            <p>{transaction.category?.name}</p>
           </div>
           <div>
             <label className="block text-gray-600 mb-1">Amount</label>

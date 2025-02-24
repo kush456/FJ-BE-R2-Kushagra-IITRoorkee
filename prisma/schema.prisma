@@ -20,6 +20,7 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   transactions Transaction[]
+  categories Category[]
 }
 
 model Transaction {
@@ -27,9 +28,19 @@ model Transaction {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   type        String   // "income" | "expense"
-  category    String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
   amount      Decimal
   description String?
   date        DateTime @default(now())
+}
+
+model Category {
+  id     String  @id @default(uuid())
+  name   String
+  type   String  // "income" | "expense"
+  userId String
+  user   User    @relation(fields: [userId], references: [id])
+  transactions Transaction[]
 }
 

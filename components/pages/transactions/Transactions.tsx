@@ -15,23 +15,34 @@ import { Search, TrendingUp, TrendingDown } from 'lucide-react'
 import AddTransactionDialog from "@/components/dialogs/transactions/AddTransactionDialog"
 import EditTransactionDialog from "@/components/dialogs/transactions/EditTransactionDialog"
 import ViewTransactionDialog from "@/components/dialogs/transactions/ViewTransactionDialog"
+import AddCategoryDialog from "@/components/dialogs/categories/AddCategoryDialog"
+import axios from 'axios';
 
 interface Transaction {
   id: string;
   type: string;
-  category: string;
+  category: Category;
   amount: number;
   description: string | null;
   date: string;
 }
 
-interface TransactionsPageProps {
-  transactions: Transaction[];
+interface Category {
+  id: string;
+  name: string;
+  type: string;
+  userId: string;
 }
 
-export default function TransactionsPage({ transactions: initialTransactions }: TransactionsPageProps) {
+interface TransactionsPageProps {
+  transactions: Transaction[];
+  categories: Category[];
+}
+
+export default function TransactionsPage({ transactions: initialTransactions, categories: initialCategories }: TransactionsPageProps) {
     const [isClient, setIsClient] = useState(false)
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+    const [categories, setCategories] = useState<Category[]>(initialCategories);
 
     useEffect(() => {
         setIsClient(true)
@@ -45,6 +56,7 @@ export default function TransactionsPage({ transactions: initialTransactions }: 
       const updatedTransactions = [transaction, ...transactions];
       updatedTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setTransactions(updatedTransactions);
+      //console.log("transaction added :", transaction);
     };
 
     const handleTransactionUpdated = (updatedTransaction: Transaction) => {
@@ -60,6 +72,12 @@ export default function TransactionsPage({ transactions: initialTransactions }: 
       setTransactions(updatedTransactions);
     };
 
+    const handleCategoryAdded = (category: Category) => {
+      setCategories([...categories, category]);
+    };
+
+    //console.log("transactions displayed :", transactions);
+
   return (
     <div className="min-h-screen bg-background p-8">
       {/* Header */}
@@ -68,7 +86,10 @@ export default function TransactionsPage({ transactions: initialTransactions }: 
           <h1 className="text-3xl font-bold text-foreground">Transactions</h1>
           <p className="text-muted-foreground">Manage your income and expenses</p>
         </div>
-        <AddTransactionDialog onTransactionAdded={handleTransactionAdded} />
+        <div className="flex gap-4">
+          <AddTransactionDialog onTransactionAdded={handleTransactionAdded} categories={categories} />
+          <AddCategoryDialog onCategoryAdded={handleCategoryAdded} />
+        </div>
       </div>
 
       {/* Filters and Search */}
@@ -108,10 +129,9 @@ export default function TransactionsPage({ transactions: initialTransactions }: 
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="salary">Salary</SelectItem>
-              <SelectItem value="food">Food & Dining</SelectItem>
-              <SelectItem value="transport">Transportation</SelectItem>
-              <SelectItem value="utilities">Utilities</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -146,11 +166,14 @@ export default function TransactionsPage({ transactions: initialTransactions }: 
                       {transaction.type === 'income' ? `+₹${Number(transaction.amount).toFixed(2)}` : `-₹${Number(transaction.amount).toFixed(2)}`}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {transaction.category}
+                      {transaction.category?.id
+                        ? categories.find(category => category.id === transaction.category.id)?.name || 'Unknown Category'
+                        : 'No Category'}
                     </p>
                   </div>
                   <EditTransactionDialog
                     transaction={transaction}
+                    categories={categories}
                     onTransactionUpdated={handleTransactionUpdated}
                     onTransactionDeleted={handleTransactionDeleted}
                   />

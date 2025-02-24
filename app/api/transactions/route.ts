@@ -7,24 +7,34 @@ import { authOptions } from "@/lib/configs/auth/authOptions";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    //console.log(session);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { type, category, amount, description, date } = await req.json();
+    const body = await req.json();
+    //console.log("Request body:", body);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    const { type, category, amount, description, date } = body;
+    if (!type || !category || !amount || !date) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
 
     const transaction = await prisma.transaction.create({
       data: {
         userId: session.user.id,
         type,
-        category,
+        categoryId: category.id,
         amount,
         description,
         date: new Date(date),
       },
     });
 
+    //console.log("Created transaction:", transaction);
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
+    //console.log("Error creating transaction:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
@@ -42,10 +52,11 @@ export async function GET(req: Request) {
   
       return NextResponse.json(transactions);
     } catch (error) {
+      
       return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
 }
 
 
-  
-  
+
+

@@ -13,15 +13,20 @@ export default async function Dashboard() {
   const transactions = (await prisma.transaction.findMany({
     where: { userId: session.user.id },
     orderBy: { date: "desc" },
+    include: { category: true }, // Include category in the response
   })).map(transaction => ({
     ...transaction,
     amount: Number(transaction.amount),
     date: transaction.date.toISOString(),
   }));
 
+  const categories = await prisma.category.findMany({
+    where: { userId: session.user.id },
+  });
+
   return (
     <div>
-        <TransactionsPage transactions={transactions} />
+        <TransactionsPage transactions={transactions} categories={categories} />
     </div>
   );
 }
