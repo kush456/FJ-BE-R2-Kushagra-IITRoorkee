@@ -18,6 +18,10 @@ export default async function Dashboard() {
     ...transaction,
     amount: Number(transaction.amount),
     date: transaction.date.toISOString(),
+    category: {
+      ...transaction.category,
+      budget: transaction.category.budget ? Number(transaction.category.budget) : null,
+    },
   }));
 
   const categories = await prisma.category.findMany({

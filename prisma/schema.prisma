@@ -42,5 +42,6 @@ model Category {
   userId String
   user   User    @relation(fields: [userId], references: [id])
   transactions Transaction[]
+  budget Int?
 }
 

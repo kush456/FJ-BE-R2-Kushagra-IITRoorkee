@@ -143,7 +143,7 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
           <p className="text-muted-foreground">Track your financial health at a glance</p>
         </div>
         <div className="flex gap-2">
-          {showMonthly && (
+        {showMonthly && (
             <input 
               type="month" 
               value={selectedMonth} 
@@ -151,11 +151,17 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
               className="border rounded p-2"
             />
           )}
-          <Button size="sm" className="bg-blue-500 text-white" onClick={() => setShowMonthly(!showMonthly)}>
+          <Button size="sm" variant={"destructive"} onClick={() => setShowMonthly(!showMonthly)}>
             {showMonthly ? 'Show Total Transactions' : 'Show Monthly Transactions'}
           </Button>
-          <Button size="sm" className="bg-blue-500 text-white" onClick={() => setReportDialogOpen(true)}>
+        </div>
+        <div className="flex gap-2">
+          
+          <Button size="sm" onClick={() => setReportDialogOpen(true)}>
             Generate Report
+          </Button>
+          <Button size="sm" onClick={() => router.push('/budget')}>
+            Set Budget
           </Button>
         </div>
       </div>

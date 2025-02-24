@@ -16,7 +16,7 @@ import AddTransactionDialog from "@/components/dialogs/transactions/AddTransacti
 import EditTransactionDialog from "@/components/dialogs/transactions/EditTransactionDialog"
 import ViewTransactionDialog from "@/components/dialogs/transactions/ViewTransactionDialog"
 import AddCategoryDialog from "@/components/dialogs/categories/AddCategoryDialog"
-import axios from 'axios';
+
 
 interface Transaction {
   id: string;
@@ -32,6 +32,7 @@ interface Category {
   name: string;
   type: string;
   userId: string;
+  budget: number | null;
 }
 
 interface TransactionsPageProps {
