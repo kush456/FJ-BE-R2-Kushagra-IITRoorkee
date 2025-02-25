@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 
 // updating a transaction
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,9 +16,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
 
+    const {id} = await params;
     const updatedTransaction = await prisma.transaction.update({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: {
@@ -41,13 +42,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // deleting a transaction
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const { id } = await params;
     await prisma.transaction.delete({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     return NextResponse.json({ message: "Transaction deleted" });
