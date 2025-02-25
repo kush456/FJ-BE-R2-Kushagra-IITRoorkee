@@ -1,10 +1,9 @@
 "use client"
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
-  const router = useRouter();
+
 
   return (
     <nav className="bg-gray-800 p-4">

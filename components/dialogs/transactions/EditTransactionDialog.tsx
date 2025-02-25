@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Edit, Trash } from 'lucide-react'
+import { Edit} from 'lucide-react'
 import { Category } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 

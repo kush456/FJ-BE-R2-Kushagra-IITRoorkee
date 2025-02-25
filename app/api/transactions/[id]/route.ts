@@ -52,6 +52,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ message: "Transaction deleted" });
   } catch (error) {
+    console.error("Error deleting transaction: ", error);
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
 }

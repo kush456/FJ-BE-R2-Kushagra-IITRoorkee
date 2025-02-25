@@ -34,13 +34,13 @@ export async function POST(req: Request) {
     //console.log("Created transaction:", transaction);
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
-    //console.log("Error creating transaction:", error);
+    console.log("Error creating transaction:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
 //getting users transactions
-export async function GET(req: Request) {
+export async function GET() {
     try {
       const session = await getServerSession(authOptions);
       if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
   
       return NextResponse.json(transactions);
     } catch (error) {
-      
+      console.log("Error getting transactions:", error);
       return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
 }

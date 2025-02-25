@@ -1,11 +1,10 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 import DashboardPage from "@/components/pages/dashboard/Dashboard";
-import { NextRequest } from "next/server";
 import { getRecentTransactions, getTotalExpense, getTotalIncome, getTransactions } from "@/lib/utils/dashboard";
 import Navbar from "@/components/layout/Navbar";
 
-export default async function Dashboard(req : NextRequest) {
+export default async function Dashboard() {
   //const nextAuthUrl = process.env.NEXTAUTH_URL;
   const session = await getServerSession(authOptions);
   

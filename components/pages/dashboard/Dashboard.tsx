@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { LineChart, TrendingDown, TrendingUp, Plus, Equal } from "lucide-react"
+import {  TrendingDown, TrendingUp, Equal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { Pie, Bar } from 'react-chartjs-2'

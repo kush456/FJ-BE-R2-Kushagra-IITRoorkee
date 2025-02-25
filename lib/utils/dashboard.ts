@@ -23,7 +23,7 @@ export async function getTotalIncome(session: Session){
         const totalIncome = incomeTransactions.reduce((acc, transaction) => acc + transaction.amount.toNumber(), 0);
         return NextResponse.json(totalIncome, { status: 200});
     } catch (error) {
-        
+        console.log(error);
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
         
@@ -48,7 +48,7 @@ export async function getTotalExpense(session: Session){
         const totalExpense = expenseTransactions.reduce((acc, transaction) => acc + transaction.amount.toNumber(), 0);
         return NextResponse.json(totalExpense, { status: 200});
     } catch (error) {
-        
+        console.log(error);
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
         
@@ -74,7 +74,7 @@ export async function getRecentTransactions(session: Session){
         
         return NextResponse.json(recentTransactions, { status: 200});
     } catch (error) {
-        
+        console.log(error);
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
         
@@ -100,7 +100,7 @@ export async function getTransactions(session: Session){
         
         return NextResponse.json(recentTransactions, { status: 200});
     } catch (error) {
-        
+        console.log(error);
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
     }
         

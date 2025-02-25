@@ -3,7 +3,7 @@
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
-export default function(){
+export default function SignUpButton(){
 
     const router = useRouter();
     return(
