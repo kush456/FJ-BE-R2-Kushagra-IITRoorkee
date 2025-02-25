@@ -4,8 +4,10 @@ import { LineChart, Wallet, PieChart, TrendingUp, Shield, Clock, ArrowRight } fr
 import { Button } from "@/components/ui/button";
 import SignInButton from '@/components/Buttons/SignInButton';
 import SignUpButton from '@/components/Buttons/SignUpButton';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
+    const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Hero Section */}
@@ -37,7 +39,7 @@ export default function LandingPage() {
               <p className="text-xl text-muted-foreground mb-8">
                 Track your income, expenses, and investments in one place. Make smarter financial decisions with powerful insights and real-time analytics.
               </p>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2" onClick={() => router.push("/auth/signup")}>
                 Start Tracking Free <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
@@ -63,8 +65,8 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-12">
             <FeatureCard
               icon={<Wallet className="h-8 w-8 text-primary" />}
-              title="Expense Tracking"
-              description="Easily track your daily expenses and categorize them automatically."
+              title="Transaction Reporting"
+              description="Easily note your daily expenses and categorize them automatically."
             />
             <FeatureCard
               icon={<PieChart className="h-8 w-8 text-primary" />}
@@ -73,8 +75,8 @@ export default function LandingPage() {
             />
             <FeatureCard
               icon={<TrendingUp className="h-8 w-8 text-primary" />}
-              title="Investment Portfolio"
-              description="Monitor your investments and track their performance in real-time."
+              title="Expense Tracking and Analysis"
+              description="Monitor your expenses and track your progress with insightful graphical representation."
             />
           </div>
         </div>
@@ -120,7 +122,7 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-primary-foreground mb-8">
             Ready to take control of your finances?
           </h2>
-          <Button size="lg" variant="secondary">
+          <Button size="lg" variant="secondary" onClick={() => router.push("/auth/signup")}>
             Get Started Now
           </Button>
         </div>
