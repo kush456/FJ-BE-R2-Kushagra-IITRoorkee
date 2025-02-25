@@ -267,7 +267,7 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
       <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">Recent Transactions</h3>
-          <Button variant="outline" size="sm" onClick={() => router.push('/transactions')}>View All</Button>
+          <Button variant="default" size="sm" onClick={() => router.push('/transactions')}>View All Transactions</Button>
         </div>
         <div className="space-y-4">
           {recentTransactions.map((transaction, index) => (

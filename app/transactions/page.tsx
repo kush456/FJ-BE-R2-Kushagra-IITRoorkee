@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 import TransactionsPage from "@/components/pages/transactions/Transactions";
 import { prisma } from "@/lib/prisma";
+import Navbar from "@/components/layout/Navbar";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -30,6 +31,7 @@ export default async function Dashboard() {
 
   return (
     <div>
+        <Navbar />
         <TransactionsPage transactions={transactions} categories={categories} />
     </div>
   );

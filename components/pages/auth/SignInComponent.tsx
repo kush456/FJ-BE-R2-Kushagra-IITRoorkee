@@ -22,18 +22,19 @@ export default function SignInPage() {
     const result = await signIn("credentials", {
       email,
       password,
-      redirect : false,
+      redirect: false,
+      callbackUrl: "/dashboard", // Specify the callback URL
     });
 
     setLoading(false); // Set loading to false
 
     if (result?.error) {
-     setError(result.error);
-     return;
+      setError(result.error);
+      return;
     }
 
     console.log("sign in successful");
-    // Redirect to the home page after successful sign in
+    // Redirect to the dashboard page after successful sign in
     router.push("/dashboard");
   };
 

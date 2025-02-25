@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/configs/auth/authOptions";
 import DashboardPage from "@/components/pages/dashboard/Dashboard";
 import { NextRequest } from "next/server";
 import { getRecentTransactions, getTotalExpense, getTotalIncome, getTransactions } from "@/lib/utils/dashboard";
+import Navbar from "@/components/layout/Navbar";
 
 export default async function Dashboard(req : NextRequest) {
   //const nextAuthUrl = process.env.NEXTAUTH_URL;
@@ -26,6 +27,7 @@ export default async function Dashboard(req : NextRequest) {
 
   return (
     <div>
+      <Navbar />
       <DashboardPage totalIncome={totalIncome} totalExpense={totalExpense} recentTransactions={recentTransactions} transactions={transactions}/>
     </div>
   );

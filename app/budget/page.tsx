@@ -2,6 +2,7 @@ import { authOptions } from "@/lib/configs/auth/authOptions";
 import { getServerSession } from "next-auth";
 import BudgetPage from "@/components/pages/budget/BudgetPage";
 import { getCategories } from "@/lib/utils/categories";
+import Navbar from "@/components/layout/Navbar";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -14,6 +15,7 @@ export default async function Dashboard() {
   console.log("categories are: ", categories);
   return (
     <div>
+      <Navbar />
       <BudgetPage categories={categories} />
     </div>
   );
