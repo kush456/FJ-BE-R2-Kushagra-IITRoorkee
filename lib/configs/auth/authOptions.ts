@@ -29,6 +29,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Verify password
+        if (!user.password) {
+          throw new Error("User password is null.");
+        }
+
         const isValidPassword = await bcrypt.compare(
           credentials.password,
           user.password

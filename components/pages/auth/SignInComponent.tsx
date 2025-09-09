@@ -72,6 +72,16 @@ export default function SignInPage() {
           </Button>
         </form>
 
+        {/* Google Sign-In Button */}
+        <div className="mt-4">
+          <Button
+            className="w-full bg-red-500 hover:bg-red-600"
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          >
+            Sign in with Google
+          </Button>
+        </div>
+
         <div className="text-center text-sm text-gray-500 mt-4">
           New here? <a href="/auth/signup" className="text-blue-600">Create an account</a>
         </div>

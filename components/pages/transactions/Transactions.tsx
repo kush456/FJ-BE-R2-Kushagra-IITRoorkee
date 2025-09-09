@@ -15,6 +15,7 @@ import AddTransactionDialog from "@/components/dialogs/transactions/AddTransacti
 import EditTransactionDialog from "@/components/dialogs/transactions/EditTransactionDialog"
 import ViewTransactionDialog from "@/components/dialogs/transactions/ViewTransactionDialog"
 import AddCategoryDialog from "@/components/dialogs/categories/AddCategoryDialog"
+import { VoiceTransactionRecorder } from "@/components/VoiceExpenseRecorder"
 
 
 interface Transaction {
@@ -76,6 +77,11 @@ export default function TransactionsPage({ transactions: initialTransactions, ca
       setCategories([...categories, category]);
     };
 
+    const handleVoiceExpenseAdded = () => {
+      // Refresh transactions after voice expense is added
+      window.location.reload(); // Simple refresh for now
+    };
+
     const filteredTransactions = transactions.filter(transaction => {
       const matchesSearchTerm = transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
       const matchesTransactionType = transactionType === "all" || transaction.type === transactionType;
@@ -96,6 +102,11 @@ export default function TransactionsPage({ transactions: initialTransactions, ca
             <AddCategoryDialog onCategoryAdded={handleCategoryAdded} />
           </div>
         </div>
+
+        {/* Voice Transaction Recorder */}
+        <Card className="p-6 mb-8">
+          <VoiceTransactionRecorder onTransactionAdded={handleVoiceExpenseAdded} />
+        </Card>
 
         {/* Filters and Search */}
         <Card className="p-6 mb-8">
