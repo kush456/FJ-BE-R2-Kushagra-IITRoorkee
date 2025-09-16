@@ -31,11 +31,13 @@ export async function POST(req: Request) {
     const expenseCategories = categories.filter(cat => cat.type === "expense").map(cat => cat.name);
 
     // Process with Gemini AI
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const prompt = `
     Parse the following financial voice input and convert it to a JSON object with the exact structure below.
     
+    Today's date is: ${new Date().toISOString()}
+
     Available EXPENSE categories: ${expenseCategories.join(", ") || "None"}
     Available INCOME categories: ${incomeCategories.join(", ") || "None"}
     
@@ -43,10 +45,10 @@ export async function POST(req: Request) {
     
     You must extract and determine:
     - type: "expense" or "income" (analyze the context - earning money = income, spending money = expense)
-    - category: match to one of the available categories based on the type. If no exact match, choose the closest one or return "unknown"
+    - category: match to one of the available categories based on the type. If no exact match, choose the closest one or return "other"
     - amount: extract the numerical amount (just the number, no currency symbols)
     - description: brief description of the transaction
-    - date: use today's date in ISO format (${new Date().toISOString()})
+    - date: Analyze the voice input for any date information (e.g., "yesterday", "last Tuesday", "September 5th"). If a date is mentioned, parse it and return it in ISO format. If no date is mentioned, use today's date as provided above.
     
     Return ONLY a valid JSON object in this exact format:
     {
@@ -65,11 +67,11 @@ export async function POST(req: Request) {
     }
     
     Examples:
-    - "I spent 50 dollars on groceries" → {"type": "expense", "category": "groceries", "amount": 50, "description": "groceries", "date": "2025-09-10T...", "success": true}
-    - "Bought coffee for 5 bucks" → {"type": "expense", "category": "food", "amount": 5, "description": "coffee", "date": "2025-09-10T...", "success": true}
-    - "I earned 1000 dollars from freelancing" → {"type": "income", "category": "freelance", "amount": 1000, "description": "freelancing income", "date": "2025-09-10T...", "success": true}
-    - "Got paid 500 for consulting" → {"type": "income", "category": "consulting", "amount": 500, "description": "consulting payment", "date": "2025-09-10T...", "success": true}
-    - "Received salary 3000" → {"type": "income", "category": "salary", "amount": 3000, "description": "salary payment", "date": "2025-09-10T...", "success": true}
+    - "I spent 50 dollars on groceries yesterday" → {"type": "expense", "category": "groceries", "amount": 50, "description": "groceries yesterday", "date": "2025-09-15T...", "success": true}
+    - "Bought coffee for 5 bucks" → {"type": "expense", "category": "food", "amount": 5, "description": "coffee", "date": "2025-09-16T...", "success": true}
+    - "I earned 1000 dollars from freelancing on September 1st" → {"type": "income", "category": "freelance", "amount": 1000, "description": "freelancing income on September 1st", "date": "2025-09-01T...", "success": true}
+    - "Got paid 500 for consulting" → {"type": "income", "category": "consulting", "amount": 500, "description": "consulting payment", "date": "2025-09-16T...", "success": true}
+    - "Received salary 3000" → {"type": "income", "category": "salary", "amount": 3000, "description": "salary payment", "date": "2025-09-16T...", "success": true}
     
     Important: Carefully analyze the context to determine if it's income (earning/receiving money) or expense (spending money).
     `;

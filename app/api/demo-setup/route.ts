@@ -30,6 +30,14 @@ export async function POST() {
         { name: "Coffee", type: "expense" },
         { name: "Gas", type: "expense" },
         { name: "Utilities", type: "expense" },
+        { name: "Rent/Mortgage", type: "expense" },
+        { name: "Insurance", type: "expense" },
+        { name: "Education", type: "expense" },
+        { name: "Travel", type: "expense" },
+        { name: "Personal Care", type: "expense" },
+        { name: "Gifts/Donations", type: "expense" },
+        { name: "Subscriptions", type: "expense" },
+        { name: "Other", type: "expense" },
         // Income categories
         { name: "Salary", type: "income" },
         { name: "Freelancing", type: "income" },
@@ -38,6 +46,9 @@ export async function POST() {
         { name: "Investment", type: "income" },
         { name: "Bonus", type: "income" },
         { name: "Side Job", type: "income" },
+        { name: "Rental Income", type: "income" },
+        { name: "Gifts", type: "income" },
+        { name: "Other", type: "income" },
       ];
 
       await prisma.category.createMany({

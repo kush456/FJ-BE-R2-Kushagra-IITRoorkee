@@ -25,141 +25,95 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
+  // This effect now only handles cleanup when the component unmounts.
   useEffect(() => {
-    // Check if speech recognition is supported
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
-      try {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
-        
-        // Add these properties to improve reliability
-        recognitionRef.current.maxAlternatives = 1;
-        
-        recognitionRef.current.onresult = (event: any) => {
-          let finalTranscript = '';
-          let interimTranscript = '';
-          
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcriptPart = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcriptPart;
-            } else {
-              interimTranscript += transcriptPart;
-            }
-          }
-          
-          if (finalTranscript) {
-            setTranscript(prev => prev + finalTranscript);
-          }
-          setInterimTranscript(interimTranscript);
-        };
-        
-        recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          if (event.error === 'network') {
-            toast.error("Network error. Please check your internet connection or try the manual input option.");
-            setShowManualInput(true);
-          } else if (event.error === 'no-speech') {
-            toast.info("No speech detected. Please speak clearly.");
-          } else if (event.error === 'audio-capture') {
-            toast.error("Microphone access denied or not available.");
-            setShowManualInput(true);
-          } else if (event.error === 'not-allowed') {
-            toast.error("Microphone permission denied. Please allow microphone access or use manual input.");
-            setShowManualInput(true);
-          } else if (event.error === 'service-not-allowed') {
-            toast.error("Speech recognition service not available. Please use the manual input option.");
-            setShowManualInput(true);
-          } else {
-            toast.error(`Speech recognition error: ${event.error}. Please try the manual input option.`);
-            setShowManualInput(true);
-          }
-          
-          // Stop recording on error
-          setIsRecording(false);
-          if (timerRef.current) clearTimeout(timerRef.current);
-          if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-          if (countdownRef.current) clearInterval(countdownRef.current);
-        };
-        
-        recognitionRef.current.onend = () => {
-          if (isRecording) {
-            // Try to restart recognition if still recording
-            try {
-              setTimeout(() => {
-                if (recognitionRef.current && isRecording) {
-                  recognitionRef.current.start();
-                }
-              }, 100);
-            } catch (error) {
-              console.error("Error restarting recognition:", error);
-            }
-          }
-        };
-      } catch (error) {
-        console.error("Error initializing speech recognition:", error);
-        toast.error("Speech recognition could not be initialized. Please use the manual input option.");
-        setShowManualInput(true);
-      }
-    } else {
-      // Speech recognition not supported
-      setShowManualInput(true);
-    }
-    
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
         } catch (error) {
-          console.error("Error stopping recognition:", error);
+          // This can happen if the recognition is already stopped.
         }
       }
     };
-  }, [isRecording]);
+  }, []);
 
   const startRecording = async () => {
-    if (!recognitionRef.current) {
-      toast.error("Speech recognition not supported in this browser. Please use the manual input option below.");
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Speech recognition not supported. Please use manual input.");
       setShowManualInput(true);
       return;
     }
     
     try {
-      // Request microphone permission first
+      // 1. Confirm microphone access and log it.
       await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("✅ Microphone access granted. Audio stream is available.");
       
       setIsRecording(true);
-      setTimeLeft(30);
       setRecordingTime(0);
       setTranscript("");
       setInterimTranscript("");
       setShowManualInput(false);
       
-      // Start speech recognition
-      recognitionRef.current.start();
+      // 2. Create a NEW recognition instance for each recording.
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+      
+      recognition.onresult = (event: any) => {
+        // 3. Log that audio data is being received and processed.
+        console.log("🎤 Audio data received, processing result...");
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcriptPart = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcriptPart;
+          } else {
+            interimTranscript += transcriptPart;
+          }
+        }
+        
+        if (finalTranscript) {
+          setTranscript(prev => prev + finalTranscript);
+        }
+        setInterimTranscript(interimTranscript);
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'network') {
+          toast.error("Network error. Check connection or use manual input.");
+        } else if (event.error === 'audio-capture') {
+          toast.error("Microphone is busy or unavailable. Please check other tabs/apps or refresh the page.");
+        } else if (event.error === 'not-allowed') {
+          toast.error("Microphone permission denied. Please allow access.");
+        } else {
+          toast.error(`Error: ${event.error}. Please try manual input.`);
+        }
+        setShowManualInput(true);
+        stopRecording(false); // Stop without processing
+      };
+      
+      recognition.onend = () => {
+        // This will be called when stopRecording() is invoked.
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
       
       // Recording timer
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
-      }, 1000);
-      
-      // Countdown timer
-      let countdown = 30;
-      countdownRef.current = setInterval(() => {
-        countdown--;
-        setTimeLeft(countdown);
-        if (countdown <= 0) {
-          stopRecording();
-        }
       }, 1000);
       
       // Auto-stop after 30 seconds
@@ -167,40 +121,35 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
         stopRecording();
       }, 30000);
       
-      toast.success("Recording started! Speak clearly about your transaction (income or expense).");
+      toast.success("Recording started! Speak clearly.");
       
     } catch (error) {
       console.error("Error starting recording:", error);
-      toast.error("Could not access microphone. Please use the manual input option below.");
+      toast.error("Could not access microphone. Please allow permission and try again.");
       setShowManualInput(true);
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (process = true) => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
     
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-    }
-    
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     
     setIsRecording(false);
     
-    // Process the final transcript
-    const finalTranscript = transcript + interimTranscript;
-    if (finalTranscript.trim()) {
-      processTranscriptToExpense(finalTranscript.trim());
-    } else {
-      toast.error("No speech detected. Please try again.");
+    if (process) {
+      // A short delay to allow the final transcript to be processed
+      setTimeout(() => {
+        const finalTranscript = (transcript + interimTranscript).trim();
+        if (finalTranscript) {
+          processTranscriptToExpense(finalTranscript);
+        } else {
+          toast.info("No speech was detected.");
+        }
+      }, 200);
     }
   };
 
