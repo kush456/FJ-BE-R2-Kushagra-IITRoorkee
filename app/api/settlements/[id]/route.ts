@@ -11,6 +11,7 @@ export async function PATCH({ params }: { params: { id: string } }) {
     });
     return NextResponse.json({ settlement: updated });
   } catch (error) {
+    console.error('Error updating settlement:', error);
     return NextResponse.json({ error: 'Failed to update settlement' }, { status: 500 });
   }
 }

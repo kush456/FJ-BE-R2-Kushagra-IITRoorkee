@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Users, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 
 interface Participant {
   userId: string;

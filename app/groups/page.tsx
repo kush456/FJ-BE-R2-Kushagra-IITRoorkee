@@ -10,7 +10,6 @@ export default async function GroupsPage() {
   if (!session) {
     return <p className="text-center mt-10 text-red-500">You must be logged in to view this page.</p>;
   }
-  // @ts-ignore
   const userId = session.user?.id || '';
   return (
     <div>

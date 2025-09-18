@@ -181,7 +181,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         for (const creditor of creditors) {
           if (debtRemaining <= 0.01) break;
           
-          let creditAvailable = creditor.paid - creditor.share;
+          const creditAvailable = creditor.paid - creditor.share;
           if (creditAvailable <= 0.01) continue;
           
           const settlementAmount = Math.min(debtRemaining, creditAvailable);
