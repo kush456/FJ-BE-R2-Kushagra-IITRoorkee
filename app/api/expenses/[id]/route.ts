@@ -3,9 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { Decimal } from '@prisma/client/runtime/library';
 
+
 // GET /api/expenses/[id] - Get expense details with participants and settlements
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = await context.params;
+export async function GET(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -57,8 +58,8 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 }
 
 // PUT /api/expenses/[id] - Update expense
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = await context.params;
+export async function PUT(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -214,8 +215,8 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
 }
 
 // DELETE /api/expenses/[id] - Delete expense
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = await context.params;
+export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {

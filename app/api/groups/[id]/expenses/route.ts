@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 // GET /api/groups/[id]/expenses - Get all expenses for a specific group
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Verify user is a member of this group
     const groupMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: params.id, userId: user.id } }
+      where: { groupId_userId: { groupId: id, userId: user.id } }
     });
 
     if (!groupMember) {
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Get all expenses for this group
     const expenses = await prisma.expense.findMany({
-      where: { groupId: params.id },
+      where: { groupId: id },
       include: {
         participants: {
           include: {
@@ -50,7 +51,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST /api/groups/[id]/expenses - Create a new expense in this group
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Verify user is a member of this group
     const groupMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: params.id, userId: user.id } }
+      where: { groupId_userId: { groupId: id, userId: user.id } }
     });
 
     if (!groupMember) {
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Validate that payer is a group member
     const payerMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: params.id, userId: payerId } }
+      where: { groupId_userId: { groupId: id, userId: payerId } }
     });
 
     if (!payerMember) {
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Validate that all participants are group members
     const groupMembers = await prisma.groupMember.findMany({
-      where: { groupId: params.id },
+      where: { groupId: id },
       select: { userId: true }
     });
     
@@ -106,7 +108,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // Create the group expense
     const expense = await prisma.expense.create({
       data: {
-        groupId: params.id,
+        groupId: id,
         payerId,
         amount,
         description,
@@ -126,15 +128,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // Update group balances for each participant
     await Promise.all(participants.map(async (p: any) => {
       await prisma.groupBalance.upsert({
-        where: { groupId_userId: { groupId: params.id, userId: p.userId } },
+        where: { groupId_userId: { groupId: id, userId: p.userId } },
         update: { balance: { increment: p.paid - p.share } },
-        create: { groupId: params.id, userId: p.userId, balance: p.paid - p.share },
+        create: { groupId: id, userId: p.userId, balance: p.paid - p.share },
       });
     }));
 
     // Debt minimization: fetch all group balances, calculate minimal settlements, and update Settlement table
     const balances = await prisma.groupBalance.findMany({
-      where: { groupId: params.id },
+      where: { groupId: id },
       select: { userId: true, balance: true },
     });
 
@@ -148,7 +150,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Remove previous settlements for this group (we recalculate all)
-    await prisma.settlement.deleteMany({ where: { groupId: params.id } });
+    await prisma.settlement.deleteMany({ where: { groupId: id } });
 
     // Greedy debt minimization
     let i = 0, j = 0;
@@ -164,7 +166,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         settlements.push({ 
           fromUserId: debtor.userId, 
           toUserId: creditor.userId, 
-          groupId: params.id,
+          groupId: id,
           amount: amount
         });
         debtor.balance += amount;
