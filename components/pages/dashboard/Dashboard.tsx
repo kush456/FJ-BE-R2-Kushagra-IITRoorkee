@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import {  TrendingDown, TrendingUp, Equal } from "lucide-react"
+import {  TrendingDown, TrendingUp, Equal, Users, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { Pie, Bar } from 'react-chartjs-2'
@@ -9,6 +9,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import { useRouter } from 'next/navigation'
 import ReportDialog from "@/components/dialogs/reporting/ReportDialog"
 import GroupOverview from './GroupOverview'
+import { AddExpenseDialog } from "@/components/dialogs/transactions/AddExpenseDialog"
+import { ExpenseDetailsDialog } from "@/components/dialogs/transactions/ExpenseDetailsDialog"
 
 // Register the required chart elements
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -29,11 +31,47 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
     const [showDaily, setShowDaily] = useState(true)
     const [reportDialogOpen, setReportDialogOpen] = useState(false)
+    const [addExpenseDialogOpen, setAddExpenseDialogOpen] = useState(false)
+    const [expenseDetailsDialogOpen, setExpenseDetailsDialogOpen] = useState(false)
+    const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
+    const [sharedExpenses, setSharedExpenses] = useState<any[]>([])
+    const [loadingExpenses, setLoadingExpenses] = useState(false)
     const router = useRouter()
         
     useEffect(() => {
         setIsClient(true)
+        loadSharedExpenses()
     }, [])
+
+    const loadSharedExpenses = async () => {
+        setLoadingExpenses(true)
+        try {
+            const response = await fetch('/api/expenses')
+            if (response.ok) {
+                const expenses = await response.json()
+                setSharedExpenses(expenses)
+            }
+        } catch (error) {
+            console.error('Error loading shared expenses:', error)
+        } finally {
+            setLoadingExpenses(false)
+        }
+    }
+
+    const handleExpenseAdded = () => {
+        loadSharedExpenses()
+        // Could also refresh other data if needed
+    }
+
+    const handleExpenseClick = (expenseId: string) => {
+        setSelectedExpenseId(expenseId)
+        setExpenseDetailsDialogOpen(true)
+    }
+
+    const getUserExpenseShare = (expense: any, userId: string) => {
+        const participant = expense.participants?.find((p: any) => p.userId === userId)
+        return participant ? participant.share : 0
+    }
 
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') || '' : '';
 
@@ -139,7 +177,8 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
 
   return (
     <div className="min-h-screen bg-background p-8">
-      
+      {/* Group Overview */}
+      <GroupOverview userId={userId} />
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -160,7 +199,10 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
           </Button>
         </div>
         <div className="flex gap-2">
-          
+          <Button size="sm" onClick={() => setAddExpenseDialogOpen(true)} className="gap-2">
+            <Users className="h-4 w-4" />
+            Add Shared Expense
+          </Button>
           <Button size="sm" onClick={() => setReportDialogOpen(true)}>
             Generate Report
           </Button>
@@ -270,12 +312,13 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
       {/* Recent Transactions */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
+          <h3 className="text-lg font-semibold">Recent Activity</h3>
           <Button variant="default" size="sm" onClick={() => router.push('/transactions')}>View All Transactions</Button>
         </div>
         <div className="space-y-4">
+          {/* Regular Transactions */}
           {recentTransactions.map((transaction, index) => (
-            <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
+            <div key={`transaction-${index}`} className="flex items-center justify-between p-4 rounded-lg border">
               <div className="flex items-center gap-4">
                 <div className={`p-2 rounded-full ${transaction.type === "income" ? 'bg-green-100' : 'bg-red-100'}`}>
                   {transaction.type === "income" ? (
@@ -298,11 +341,76 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
               </p>
             </div>
           ))}
+          
+          {/* Shared Expenses */}
+          {loadingExpenses ? (
+            <div className="flex items-center justify-center p-4 text-gray-500">
+              Loading shared expenses...
+            </div>
+          ) : (
+            sharedExpenses.slice(0, 5).map((expense) => {
+              const userShare = getUserExpenseShare(expense, userId)
+              return (
+                <div 
+                  key={`expense-${expense.id}`} 
+                  className="flex items-center justify-between p-4 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleExpenseClick(expense.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-full bg-blue-100">
+                      <Receipt className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {expense.description}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{new Date(expense.date).toLocaleDateString()}</span>
+                        {expense.group ? (
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {expense.group.name}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            Shared with {expense.participants?.length - 1} friend{expense.participants?.length > 2 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-red-600">
+                      -₹{userShare.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Your share
+                    </p>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </Card>
 
       {/* Report Dialog */}
       {reportDialogOpen && <ReportDialog onClose={() => setReportDialogOpen(false)} transactions={transactions} />}
+
+      {/* Add Expense Dialog */}
+      <AddExpenseDialog 
+        isOpen={addExpenseDialogOpen}
+        onClose={() => setAddExpenseDialogOpen(false)}
+        onExpenseAdded={handleExpenseAdded}
+      />
+
+      {/* Expense Details Dialog */}
+      <ExpenseDetailsDialog 
+        isOpen={expenseDetailsDialogOpen}
+        onClose={() => setExpenseDetailsDialogOpen(false)}
+        expenseId={selectedExpenseId}
+      />
     </div>
   )
 }
