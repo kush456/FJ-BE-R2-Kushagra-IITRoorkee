@@ -410,6 +410,8 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
         isOpen={expenseDetailsDialogOpen}
         onClose={() => setExpenseDetailsDialogOpen(false)}
         expenseId={selectedExpenseId}
+        onExpenseUpdated={handleExpenseAdded}
+        onExpenseDeleted={handleExpenseAdded}
       />
     </div>
   )

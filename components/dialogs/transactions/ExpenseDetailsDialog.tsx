@@ -8,9 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Receipt, Users, DollarSign, ArrowRight } from "lucide-react";
+import { Loader2, Receipt, Users, DollarSign, ArrowRight, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { EditExpenseDialog } from "./EditExpenseDialog";
 
 interface ExpenseParticipant {
   id: string;
@@ -67,12 +68,21 @@ interface ExpenseDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   expenseId: string | null;
+  onExpenseUpdated?: () => void;
+  onExpenseDeleted?: () => void;
 }
 
-export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDetailsDialogProps) {
+export function ExpenseDetailsDialog({ 
+  isOpen, 
+  onClose, 
+  expenseId, 
+  onExpenseUpdated, 
+  onExpenseDeleted 
+}: ExpenseDetailsDialogProps) {
   const { data: session } = useSession();
   const [expense, setExpense] = useState<ExpenseDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && expenseId) {
@@ -107,6 +117,16 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
     return expense.participants.find(p => p.userId === session.user.id);
   };
 
+  const handleExpenseUpdated = () => {
+    fetchExpenseDetails(); // Refresh the expense data
+    if (onExpenseUpdated) onExpenseUpdated();
+  };
+
+  const handleExpenseDeleted = () => {
+    onClose(); // Close this dialog
+    if (onExpenseDeleted) onExpenseDeleted();
+  };
+
   const getExpenseSettlements = () => {
     if (!expense?.settlements) return [];
     return expense.settlements;
@@ -133,10 +153,23 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Expense Details
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              Expense Details
+            </DialogTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditDialogOpen(true)}
+                className="gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         {isLoading ? (
@@ -314,6 +347,17 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
             Close
           </Button>
         </div>
+
+        {/* Edit Expense Dialog */}
+        {expense && (
+          <EditExpenseDialog
+            isOpen={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onExpenseUpdated={handleExpenseUpdated}
+            onExpenseDeleted={handleExpenseDeleted}
+            expense={expense}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
