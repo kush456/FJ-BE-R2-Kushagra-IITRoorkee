@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Receipt, Users, DollarSign, ArrowRight, Edit, Trash2 } from "lucide-react";
+import { Loader2, Receipt, Users, DollarSign, ArrowRight, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { EditExpenseDialog } from "./EditExpenseDialog";

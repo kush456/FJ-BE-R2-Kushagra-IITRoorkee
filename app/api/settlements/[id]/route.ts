@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // PATCH /api/settlements/[id] - mark as paid
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH({ params }: { params: { id: string } }) {
   const id = params.id;
   try {
     const updated = await prisma.settlement.update({

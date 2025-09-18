@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Minus, Users, X } from "lucide-react";
+import { Loader2, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { fetchFriends } from "@/lib/friendApi";
@@ -45,7 +45,7 @@ export function AddExpenseDialog({ isOpen, onClose, onExpenseAdded }: AddExpense
   const { data: session } = useSession();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
-  const [friendDropdownOpen, setFriendDropdownOpen] = useState(false);
+  const [, setFriendDropdownOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [splitType, setSplitType] = useState("equal");

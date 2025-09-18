@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 // GET /api/groups
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         members: {
-          create: allMemberIds.map((userId: string, idx: number) => ({
+          create: allMemberIds.map((userId: string) => ({
             user: { connect: { id: userId } },
             role: userId === user.id ? 'admin' : 'member',
           })),

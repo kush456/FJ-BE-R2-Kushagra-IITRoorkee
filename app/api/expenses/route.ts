@@ -4,7 +4,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { getServerSession } from 'next-auth';
 
 // GET /api/expenses - Get user's expenses (both group and one-off)
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -49,54 +49,9 @@ export async function GET(req: NextRequest) {
 // Body: { groupId?, payerId, amount, description, splitType, participants: [{ userId, paid, share }] }
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     const { groupId, payerId, amount, description, splitType, participants } = await req.json();
     if (!payerId || !amount || !participants || participants.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    // If it's a group expense, validate group membership
-    if (groupId) {
-      // Check if user is a member of the group
-      const groupMembership = await prisma.groupMember.findUnique({
-        where: { groupId_userId: { groupId, userId: user.id } }
-      });
-
-      if (!groupMembership) {
-        return NextResponse.json({ error: 'You are not a member of this group' }, { status: 403 });
-      }
-
-      // Get all group members
-      const groupMembers = await prisma.groupMember.findMany({
-        where: { groupId },
-        select: { userId: true }
-      });
-
-      const groupMemberIds = groupMembers.map(m => m.userId);
-
-      // Validate that all participants are group members
-      const invalidParticipants = participants.filter((p: any) => !groupMemberIds.includes(p.userId));
-      if (invalidParticipants.length > 0) {
-        return NextResponse.json({ error: 'All participants must be group members' }, { status: 400 });
-      }
-
-      // Validate that payer is a group member
-      if (!groupMemberIds.includes(payerId)) {
-        return NextResponse.json({ error: 'Payer must be a group member' }, { status: 400 });
-      }
     }
 
     // Create the expense and participants
@@ -189,7 +144,7 @@ export async function POST(req: NextRequest) {
         for (const creditor of creditors) {
           if (debtRemaining <= 0.01) break;
           
-          let creditAvailable = creditor.paid - creditor.share;
+          const creditAvailable = creditor.paid - creditor.share;
           if (creditAvailable <= 0.01) continue;
           
           const settlementAmount = Math.min(debtRemaining, creditAvailable);

@@ -38,6 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
     return NextResponse.json({ settlements });
   } catch (error) {
+    console.error('Error fetching settlements:', error);
     return NextResponse.json({ error: 'Failed to fetch settlements' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Receipt, Users, DollarSign, ArrowRight, Edit, Trash2 } from "lucide-react";
+import { Loader2, Receipt, Users, DollarSign, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
@@ -57,8 +57,7 @@ interface GroupExpenseDetailsDialogProps {
 export default function GroupExpenseDetailsDialog({ 
   isOpen, 
   onClose, 
-  expense,
-  onExpenseUpdated, 
+  expense, 
   onExpenseDeleted 
 }: GroupExpenseDetailsDialogProps) {
   const { data: session } = useSession();
@@ -295,7 +294,7 @@ export default function GroupExpenseDetailsDialog({
               </div>
               <div className="text-xs text-gray-500 mt-3 p-2 bg-white rounded border">
                 <strong>Note:</strong> This expense affects overall group balances. 
-                Check the group's Settlements tab to see simplified payment recommendations.
+                Check the group&apos;s Settlements tab to see simplified payment recommendations.
               </div>
             </div>
           </div>
@@ -304,9 +303,9 @@ export default function GroupExpenseDetailsDialog({
           <div className="bg-gray-50 p-4 rounded-lg text-sm">
             <h4 className="font-semibold mb-2">What happened?</h4>
             <div className="space-y-1 text-gray-600">
-              <div>• <strong>{expense.payer.name}</strong> paid {formatCurrency(expense.amount)} for "{expense.description}"</div>
+              <div>• <strong>{expense.payer.name}</strong> paid {formatCurrency(expense.amount)} for &quot;{expense.description}&quot;</div>
               <div>• The expense was split {expense.splitType === 'equal' ? 'equally' : 'with custom amounts'} among {expense.participants.length} group members</div>
-              <div>• Each person's group balance was updated based on what they paid vs. their share</div>
+              <div>• Each person&apos;s group balance was updated based on what they paid vs. their share</div>
               <div>• Group settlements were recalculated to minimize the number of transactions needed</div>
             </div>
           </div>

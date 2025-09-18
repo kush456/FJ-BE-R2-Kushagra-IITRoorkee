@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface GroupMember {
   id: string;
@@ -125,6 +125,7 @@ export default function AddGroupExpenseDialog({
         toast.error(error.error || 'Failed to add group expense');
       }
     } catch (error) {
+        console.error('Error adding group expense:', error);
       toast.error('An error occurred while adding the expense');
     } finally {
       setIsLoading(false);

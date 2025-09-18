@@ -27,7 +27,7 @@ export function FriendList({ friends, isLoading }: FriendListProps) {
   }
 
   if (friends.length === 0) {
-    return <p className="text-sm text-gray-500">You haven't added any friends yet.</p>;
+    return <p className="text-sm text-gray-500">You haven&apos;t added any friends yet.</p>;
   }
 
   return (

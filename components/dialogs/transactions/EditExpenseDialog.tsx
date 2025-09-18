@@ -43,7 +43,7 @@ export function EditExpenseDialog({
   onExpenseDeleted, 
   expense 
 }: EditExpenseDialogProps) {
-  const { data: session } = useSession();
+  
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [splitType, setSplitType] = useState("equal");

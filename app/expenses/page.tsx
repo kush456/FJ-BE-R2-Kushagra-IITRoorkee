@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Receipt, Search, Plus, Filter } from "lucide-react";
+import { Users, Receipt, Search, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { AddExpenseDialog } from "@/components/dialogs/transactions/AddExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/dialogs/transactions/ExpenseDetailsDialog";

@@ -471,7 +471,7 @@ export default function GroupDetailPage() {
             <div>
               <h3 className="text-lg font-semibold">Group Members</h3>
               <p className="text-sm text-gray-500">
-                Manage who's in this group
+                Manage who&apos;s in this group
               </p>
             </div>
             {/* TODO: Add invite member button */}

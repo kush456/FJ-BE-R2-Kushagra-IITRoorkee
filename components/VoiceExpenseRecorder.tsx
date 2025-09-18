@@ -36,6 +36,7 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
           recognitionRef.current.stop();
         } catch (error) {
           // This can happen if the recognition is already stopped.
+          console.error("Error stopping recognition on unmount:", error);
         }
       }
     };
@@ -56,6 +57,7 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
       
       setIsRecording(true);
       setRecordingTime(0);
+      setTimeLeft(30);
       setTranscript("");
       setInterimTranscript("");
       setShowManualInput(false);
@@ -114,6 +116,7 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
       // Recording timer
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
+        setTimeLeft(prev => Math.max(0, prev - 1));
       }, 1000);
       
       // Auto-stop after 30 seconds
