@@ -23,10 +23,19 @@ model User {
   categories Category[]
   accounts   Account[]
 
-  // --- NEW FIELDS FOR FRIENDS & SPLITTING ---
   sentFriendRequests     Friendship[]   @relation("SentRequests")
   receivedFriendRequests Friendship[]   @relation("ReceivedRequests")
   expenseSplits          ExpenseSplit[]
+  groupMemberships       GroupMember[]
+
+  // --- NEW FIELDS FOR EXPENSES ---
+  expenseParticipants    ExpenseParticipant[]
+
+  // --- Opposite relations for settlements and group balances ---
+  expensesPaid           Expense[]        @relation("ExpensePayer")
+  settlementsFrom        Settlement[]     @relation("SettlementFrom")
+  settlementsTo          Settlement[]     @relation("SettlementTo")
+  groupBalances          GroupBalance[]
 }
 
 model Account {
@@ -102,21 +111,94 @@ model SharedExpense {
 }
 
 // Details how a single shared expense is split among users
-// Details how a single shared expense is split among users
 model ExpenseSplit {
   id              String   @id @default(uuid())
   sharedExpenseId String
+  userId          String
+  amountPaid      Decimal
+  amountOwed      Decimal
+  netBalance      Decimal
+  settled         Boolean  @default(false)
+
   sharedExpense   SharedExpense @relation(fields: [sharedExpenseId], references: [id], onDelete: Cascade)
-  userId          String   // The user this split portion belongs to
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  amountPaid      Decimal  // How much this user actually paid (e.g., $100)
-  amountOwed      Decimal  // How much this user's share of the bill is (e.g., $25)
-  
-  // A calculated field for easy balance checking: amountPaid - amountOwed
-  // A positive value means they are owed money; negative means they owe money.
-  netBalance      Decimal  
-  settled         Boolean  @default(false) // Whether this split has been settled
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- GROUPS & MEMBERSHIP ---
+model Group {
+  id        String        @id @default(uuid())
+  name      String
+  createdAt DateTime      @default(now())
+  members   GroupMember[]
+  expenses  Expense[]
+  settlements Settlement[]
+  groupBalances GroupBalance[]
+  // Add more fields as needed (e.g., description)
+}
+
+model GroupMember {
+  id      String   @id @default(uuid())
+  groupId String
+  userId  String
+  role    String   // "admin", "member"
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+  @@unique([groupId, userId])
+}
+
+// --- EXPENSES & PARTICIPANTS ---
+model Expense {
+  id          String   @id @default(uuid())
+  groupId     String?
+  amount      Decimal
+  description String?
+  date        DateTime @default(now())
+  splitType   String   // "equal", "custom", etc.
+
+  payerId     String
+  group       Group?   @relation(fields: [groupId], references: [id])
+  payer       User     @relation("ExpensePayer", fields: [payerId], references: [id])
+  participants ExpenseParticipant[]
+}
+
+model ExpenseParticipant {
+  id         String   @id @default(uuid())
+  expenseId  String
+  userId     String
+  paid       Decimal
+  share      Decimal
+  netBalance Decimal
+
+  expense    Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([expenseId, userId])
+}
+
+// --- SETTLEMENTS & GROUP BALANCES ---
+model Settlement {
+  id          String   @id @default(uuid())
+  fromUserId  String
+  toUserId    String
+  groupId     String?
+  amount      Decimal
+  status      String   @default("PENDING") // "PENDING", "PAID"
+  createdAt   DateTime @default(now())
+
+  fromUser    User     @relation("SettlementFrom", fields: [fromUserId], references: [id])
+  toUser      User     @relation("SettlementTo", fields: [toUserId], references: [id])
+  group       Group?   @relation(fields: [groupId], references: [id])
+}
+
+model GroupBalance {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  balance   Decimal
+
+  group     Group    @relation(fields: [groupId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([groupId, userId])
 }
 
 

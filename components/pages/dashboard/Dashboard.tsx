@@ -8,6 +8,7 @@ import { Pie, Bar } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { useRouter } from 'next/navigation'
 import ReportDialog from "@/components/dialogs/reporting/ReportDialog"
+import GroupOverview from './GroupOverview'
 
 // Register the required chart elements
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -33,6 +34,8 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
     useEffect(() => {
         setIsClient(true)
     }, [])
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') || '' : '';
 
     if (!isClient) {
         return null; 
@@ -136,6 +139,7 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
 
   return (
     <div className="min-h-screen bg-background p-8">
+      
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>

@@ -52,6 +52,12 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            <Link 
+              href="/groups" 
+              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 font-medium"
+            >
+              Groups
+            </Link>
             
             {/* Divider */}
             <div className="h-6 w-px bg-slate-700 mx-2" />
