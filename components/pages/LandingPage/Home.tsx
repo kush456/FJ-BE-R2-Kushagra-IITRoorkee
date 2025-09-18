@@ -34,20 +34,20 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl font-bold text-foreground leading-tight mb-6">
-                Take Control of Your Financial Journey
+                Split Expenses. Track Balances. Settle Debts.
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Track your income, expenses, and investments in one place. Make smarter financial decisions with powerful insights and real-time analytics.
+                The easiest way to share expenses with friends, family, and groups. Never lose track of who owes what again with smart bill splitting and debt optimization.
               </p>
               <Button size="lg" className="gap-2" onClick={() => router.push("/auth/signup")}>
-                Start Tracking Free <ArrowRight className="h-5 w-5" />
+                Start Splitting Free <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
             <div className="relative">
               <div className="rounded-lg overflow-hidden shadow-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800"
-                  alt="Financial Dashboard"
+                  alt="Expense Splitting Dashboard"
                   className="w-full h-auto"
                 />
               </div>
@@ -60,23 +60,23 @@ export default function LandingPage() {
       <section className="py-20 bg-background" id="features">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-foreground mb-16">
-            Everything you need to manage your finances
+            Everything you need to manage shared expenses
           </h2>
           <div className="grid md:grid-cols-3 gap-12">
             <FeatureCard
               icon={<Wallet className="h-8 w-8 text-primary" />}
-              title="Transaction Reporting"
-              description="Easily note your daily expenses and categorize them automatically."
+              title="Smart Bill Splitting"
+              description="Split bills equally, by custom amounts, or percentages. Add friends and create groups for ongoing expense sharing."
             />
             <FeatureCard
               icon={<PieChart className="h-8 w-8 text-primary" />}
-              title="Budget Planning"
-              description="Create and manage budgets that help you reach your financial goals."
+              title="Group Management"
+              description="Create groups for roommates, trips, or regular activities. Track group balances and see who owes what."
             />
             <FeatureCard
               icon={<TrendingUp className="h-8 w-8 text-primary" />}
-              title="Expense Tracking and Analysis"
-              description="Monitor your expenses and track your progress with insightful graphical representation."
+              title="Debt Optimization"
+              description="Minimize transactions with smart settlement recommendations. See optimized payment paths to settle all debts efficiently."
             />
           </div>
         </div>
@@ -88,18 +88,18 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-6">
-                Your finances are safe with us
+                Fair and transparent expense sharing
               </h2>
               <div className="space-y-6">
                 <TrustItem
                   icon={<Shield className="h-6 w-6 text-primary" />}
-                  title="Bank-grade Security"
-                  description="Your data is encrypted and protected with the highest security standards."
+                  title="Accurate Calculations"
+                  description="Never worry about math errors. Our algorithms ensure fair splits and accurate balance tracking for all participants."
                 />
                 <TrustItem
                   icon={<Clock className="h-6 w-6 text-primary" />}
-                  title="Real-time Sync"
-                  description="Your financial data is always up-to-date across all your devices."
+                  title="Real-time Updates"
+                  description="Expenses and balances update instantly. Everyone in your group stays informed about current debt status."
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function LandingPage() {
               <div className="rounded-lg overflow-hidden shadow-xl">
                 <img
                   src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=800"
-                  alt="Security"
+                  alt="Friends sharing expenses"
                   className="w-full h-auto"
                 />
               </div>
@@ -120,10 +120,10 @@ export default function LandingPage() {
       <section className="py-20 bg-primary">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-8">
-            Ready to take control of your finances?
+            Ready to simplify shared expenses?
           </h2>
           <Button size="lg" variant="secondary" onClick={() => router.push("/auth/signup")}>
-            Get Started Now
+            Start Splitting Now
           </Button>
         </div>
       </section>
