@@ -112,7 +112,13 @@ export async function POST(req: NextRequest) {
         const creditorOwed = creditor.balance;
         const amount = debtorOwes.lt(creditorOwed) ? debtorOwes : creditorOwed;
         if (amount.gt(0.01)) {
-          settlements.push({ fromUserId: debtor.userId, toUserId: creditor.userId, groupId, amount: amount.toNumber() });
+          settlements.push({ 
+            fromUserId: debtor.userId, 
+            toUserId: creditor.userId, 
+            groupId, 
+            expenseId: expense.id,
+            amount: amount.toNumber() 
+          });
           debtor.balance = debtor.balance.add(amount);
           creditor.balance = creditor.balance.sub(amount);
         }
@@ -147,6 +153,7 @@ export async function POST(req: NextRequest) {
             fromUserId: debtor.userId,
             toUserId: creditor.userId,
             groupId: null, // One-off expense
+            expenseId: expense.id, // Link to this expense
             amount: settlementAmount,
             status: 'PENDING'
           });

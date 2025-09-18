@@ -28,7 +28,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           }
         },
         payer: { select: { id: true, name: true, email: true } },
-        group: { select: { id: true, name: true } }
+        group: { select: { id: true, name: true } },
+        settlements: {
+          include: {
+            fromUser: { select: { id: true, name: true, email: true } },
+            toUser: { select: { id: true, name: true, email: true } }
+          }
+        }
       }
     });
 
@@ -42,25 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Get related settlements for this expense
-    const settlements = await prisma.settlement.findMany({
-      where: {
-        OR: [
-          { fromUserId: user.id },
-          { toUserId: user.id }
-        ],
-        groupId: expense.groupId
-      },
-      include: {
-        fromUser: { select: { id: true, name: true, email: true } },
-        toUser: { select: { id: true, name: true, email: true } }
-      }
-    });
-
-    return NextResponse.json({
-      ...expense,
-      settlements
-    });
+    return NextResponse.json(expense);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch expense details', details: error }, { status: 500 });
   }

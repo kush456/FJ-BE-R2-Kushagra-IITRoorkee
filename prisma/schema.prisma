@@ -160,6 +160,7 @@ model Expense {
   group       Group?   @relation(fields: [groupId], references: [id])
   payer       User     @relation("ExpensePayer", fields: [payerId], references: [id])
   participants ExpenseParticipant[]
+  settlements Settlement[]
 }
 
 model ExpenseParticipant {
@@ -181,6 +182,7 @@ model Settlement {
   fromUserId  String
   toUserId    String
   groupId     String?
+  expenseId   String?
   amount      Decimal
   status      String   @default("PENDING") // "PENDING", "PAID"
   createdAt   DateTime @default(now())
@@ -188,6 +190,7 @@ model Settlement {
   fromUser    User     @relation("SettlementFrom", fields: [fromUserId], references: [id])
   toUser      User     @relation("SettlementTo", fields: [toUserId], references: [id])
   group       Group?   @relation(fields: [groupId], references: [id])
+  expense     Expense? @relation(fields: [expenseId], references: [id])
 }
 
 model GroupBalance {

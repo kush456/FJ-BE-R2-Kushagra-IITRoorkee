@@ -107,11 +107,9 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
     return expense.participants.find(p => p.userId === session.user.id);
   };
 
-  const getRelevantSettlements = () => {
-    if (!expense || !session?.user?.id) return [];
-    return expense.settlements.filter(s => 
-      s.fromUserId === session.user.id || s.toUserId === session.user.id
-    );
+  const getExpenseSettlements = () => {
+    if (!expense?.settlements) return [];
+    return expense.settlements;
   };
 
   const formatCurrency = (amount: number) => {
@@ -258,15 +256,12 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
               </div>
             </div>
 
-            {/* Settlements */}
-            {getRelevantSettlements().length > 0 && (
+            {/* Settlements for this expense */}
+            {getExpenseSettlements().length > 0 && (
               <div>
-                <h4 className="font-semibold mb-3">Your Settlements</h4>
+                <h4 className="font-semibold mb-3">Settlements for this Expense</h4>
                 <div className="space-y-2">
-                  {getRelevantSettlements().map((settlement) => {
-                    const isOwing = settlement.fromUserId === session?.user?.id;
-                    const otherUser = isOwing ? settlement.toUser : settlement.fromUser;
-                    
+                  {getExpenseSettlements().map((settlement) => {
                     return (
                       <div key={settlement.id} className="flex items-center justify-between p-3 border rounded">
                         <div className="flex items-center gap-3">
@@ -275,10 +270,11 @@ export function ExpenseDetailsDialog({ isOpen, onClose, expenseId }: ExpenseDeta
                           }`} />
                           <div>
                             <div className="text-sm">
-                              {isOwing ? 'You owe' : 'Owes you'} {formatCurrency(settlement.amount)}
+                              <span className="font-medium">{settlement.fromUser.name}</span> owes{' '}
+                              <span className="font-medium">{settlement.toUser.name}</span>{' '}
+                              {formatCurrency(settlement.amount)}
                             </div>
                             <div className="flex items-center gap-1 text-xs text-gray-500">
-                              {isOwing ? 'To' : 'From'}: {otherUser.name}
                               <ArrowRight className="h-3 w-3" />
                               <span className={`capitalize ${
                                 settlement.status === 'PAID' ? 'text-green-600' : 'text-yellow-600'
