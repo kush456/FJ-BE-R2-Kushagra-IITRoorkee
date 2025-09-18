@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 // GET /api/groups/[id]/balances
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
-  const { id: groupId } = await context.params;
+export async function GET(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id: groupId } = await params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {

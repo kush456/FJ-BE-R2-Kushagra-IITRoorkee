@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/expenses/[id]/settlements
-export async function GET({ params }: { params: { id: string } }) {
-  const expenseId = params.id;
+export async function GET({params}: {params: Promise<{ id: string }>}) {
+  const expenseId = (await params).id;
   try {
     // For one-off expenses, settlements are linked by expense participants and not groupId
     // We'll assume you have a way to relate settlements to an expense (e.g., via groupId=null and participants)

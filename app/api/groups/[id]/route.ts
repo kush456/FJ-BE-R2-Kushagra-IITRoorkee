@@ -3,8 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 // GET /api/groups/[id] - Get group details
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Verify user is a member of this group
     const groupMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: params.id, userId: user.id } }
+      where: { groupId_userId: { groupId: id, userId: user.id } }
     });
 
     if (!groupMember) {
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Get group details with members and expense count
     const group = await prisma.group.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         members: {
           include: {
