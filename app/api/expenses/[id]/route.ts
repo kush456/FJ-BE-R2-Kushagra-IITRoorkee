@@ -4,7 +4,8 @@ import { getServerSession } from 'next-auth';
 import { Decimal } from '@prisma/client/runtime/library';
 
 // GET /api/expenses/[id] - Get expense details with participants and settlements
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = await context.params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     const expense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         participants: {
           include: {
@@ -56,7 +57,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // PUT /api/expenses/[id] - Update expense
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = await context.params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -76,7 +78,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     // Verify user is a participant in this expense
     const existingExpense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { participants: true }
     });
 
@@ -91,17 +93,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     // Delete existing settlements for this expense
     await prisma.settlement.deleteMany({
-      where: { expenseId: params.id }
+      where: { expenseId: id }
     });
 
     // Delete existing participants
     await prisma.expenseParticipant.deleteMany({
-      where: { expenseId: params.id }
+      where: { expenseId: id }
     });
 
     // Update expense and recreate participants
     const updatedExpense = await prisma.expense.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         description,
         amount,
@@ -157,7 +159,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             fromUserId: debtor.userId, 
             toUserId: creditor.userId, 
             groupId: existingExpense.groupId,
-            expenseId: params.id,
+            expenseId: id,
             amount: amount.toNumber() 
           });
           debtor.balance = debtor.balance.add(amount);
@@ -190,7 +192,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             fromUserId: debtor.userId,
             toUserId: creditor.userId,
             groupId: null,
-            expenseId: params.id,
+            expenseId: id,
             amount: settlementAmount,
             status: 'PENDING'
           });
@@ -212,7 +214,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/expenses/[id] - Delete expense
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = await context.params;
   try {
     const session = await getServerSession();
     if (!session?.user?.email) {
@@ -230,7 +233,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     // Verify user is a participant in this expense
     const expense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { participants: true }
     });
 
@@ -245,17 +248,17 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     // Delete settlements related to this expense
     await prisma.settlement.deleteMany({
-      where: { expenseId: params.id }
+      where: { expenseId: id }
     });
 
     // Delete participants (will cascade delete the expense)
     await prisma.expenseParticipant.deleteMany({
-      where: { expenseId: params.id }
+      where: { expenseId: id }
     });
 
     // Delete the expense
     await prisma.expense.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     // If it was a group expense, recalculate group balances
