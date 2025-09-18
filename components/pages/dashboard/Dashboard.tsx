@@ -8,8 +8,6 @@ import { Pie, Bar } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { useRouter } from 'next/navigation'
 import ReportDialog from "@/components/dialogs/reporting/ReportDialog"
-import GroupOverview from './GroupOverview'
-import { AddExpenseDialog } from "@/components/dialogs/transactions/AddExpenseDialog"
 import { ExpenseDetailsDialog } from "@/components/dialogs/transactions/ExpenseDetailsDialog"
 
 // Register the required chart elements
@@ -31,7 +29,6 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
     const [showDaily, setShowDaily] = useState(true)
     const [reportDialogOpen, setReportDialogOpen] = useState(false)
-    const [addExpenseDialogOpen, setAddExpenseDialogOpen] = useState(false)
     const [expenseDetailsDialogOpen, setExpenseDetailsDialogOpen] = useState(false)
     const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
     const [sharedExpenses, setSharedExpenses] = useState<any[]>([])
@@ -177,8 +174,6 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
 
   return (
     <div className="min-h-screen bg-background p-8">
-      {/* Group Overview */}
-      <GroupOverview userId={userId} />
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -199,10 +194,6 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => setAddExpenseDialogOpen(true)} className="gap-2">
-            <Users className="h-4 w-4" />
-            Add Shared Expense
-          </Button>
           <Button size="sm" onClick={() => setReportDialogOpen(true)}>
             Generate Report
           </Button>
@@ -397,13 +388,6 @@ export default function DashboardPage({ totalIncome, totalExpense, recentTransac
 
       {/* Report Dialog */}
       {reportDialogOpen && <ReportDialog onClose={() => setReportDialogOpen(false)} transactions={transactions} />}
-
-      {/* Add Expense Dialog */}
-      <AddExpenseDialog 
-        isOpen={addExpenseDialogOpen}
-        onClose={() => setAddExpenseDialogOpen(false)}
-        onExpenseAdded={handleExpenseAdded}
-      />
 
       {/* Expense Details Dialog */}
       <ExpenseDetailsDialog 

@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Minus, Users } from "lucide-react";
+import { Loader2, Plus, Minus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { fetchFriends } from "@/lib/friendApi";
@@ -45,6 +45,7 @@ export function AddExpenseDialog({ isOpen, onClose, onExpenseAdded }: AddExpense
   const { data: session } = useSession();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [friendDropdownOpen, setFriendDropdownOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [splitType, setSplitType] = useState("equal");
@@ -63,6 +64,25 @@ export function AddExpenseDialog({ isOpen, onClose, onExpenseAdded }: AddExpense
   useEffect(() => {
     updateParticipants();
   }, [selectedFriends, amount, splitType, session]);
+
+  const addFriend = (friendId: string) => {
+    if (!selectedFriends.includes(friendId)) {
+      setSelectedFriends(prev => [...prev, friendId]);
+    }
+    setFriendDropdownOpen(false);
+  };
+
+  const removeFriend = (friendId: string) => {
+    setSelectedFriends(prev => prev.filter(id => id !== friendId));
+  };
+
+  const getSelectedFriendsData = () => {
+    return friends.filter(f => selectedFriends.includes(f.id));
+  };
+
+  const getAvailableFriends = () => {
+    return friends.filter(f => !selectedFriends.includes(f.id));
+  };
 
   const loadFriends = async () => {
     setLoadingFriends(true);
@@ -171,6 +191,7 @@ export function AddExpenseDialog({ isOpen, onClose, onExpenseAdded }: AddExpense
     setDescription("");
     setSplitType("equal");
     setParticipants([]);
+    setFriendDropdownOpen(false);
   };
 
   const handleClose = () => {
@@ -215,34 +236,60 @@ export function AddExpenseDialog({ isOpen, onClose, onExpenseAdded }: AddExpense
           {/* Friend Selection */}
           <div>
             <label className="block text-sm font-medium mb-2">Split with friends</label>
+            
+            {/* Selected Friends */}
+            {getSelectedFriendsData().length > 0 && (
+              <div className="mb-3">
+                <div className="flex flex-wrap gap-2">
+                  {getSelectedFriendsData().map(friend => (
+                    <div
+                      key={friend.id}
+                      className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                    >
+                      <span>{friend.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeFriend(friend.id)}
+                        className="hover:bg-blue-200 rounded-full p-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add Friend Dropdown */}
             {loadingFriends ? (
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading friends...
               </div>
+            ) : getAvailableFriends().length > 0 ? (
+              <Select onValueChange={addFriend} value="">
+                <SelectTrigger>
+                  <SelectValue placeholder="Add a friend to split with..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableFriends().map(friend => (
+                    <SelectItem key={friend.id} value={friend.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{friend.name}</span>
+                        <span className="text-sm text-gray-500">({friend.email})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : selectedFriends.length === 0 ? (
+              <p className="text-sm text-gray-500 p-3 border rounded bg-gray-50">
+                No friends available. Add friends first to split expenses with them.
+              </p>
             ) : (
-              <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                {friends.length === 0 ? (
-                  <p className="text-sm text-gray-500">No friends available</p>
-                ) : (
-                  friends.map(friend => (
-                    <label key={friend.id} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedFriends.includes(friend.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedFriends(prev => [...prev, friend.id]);
-                          } else {
-                            setSelectedFriends(prev => prev.filter(id => id !== friend.id));
-                          }
-                        }}
-                      />
-                      <span className="text-sm">{friend.name} ({friend.email})</span>
-                    </label>
-                  ))
-                )}
-              </div>
+              <p className="text-sm text-gray-500 p-3 border rounded bg-gray-50">
+                All your friends have been added to this expense.
+              </p>
             )}
           </div>
 

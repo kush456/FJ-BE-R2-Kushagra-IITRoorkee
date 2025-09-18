@@ -36,6 +36,12 @@ export default function Navbar() {
               Transactions
             </Link>
             <Link 
+              href="/expenses" 
+              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 font-medium"
+            >
+              Expenses
+            </Link>
+            <Link 
               href="/budget" 
               className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 font-medium"
             >
