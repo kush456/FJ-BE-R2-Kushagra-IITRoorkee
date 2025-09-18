@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { CalendarDays, DollarSign, Users, Eye } from 'lucide-react';
+import { CalendarDays, Users, Eye } from 'lucide-react';
 
 interface GroupExpense {
   id: string;
@@ -71,7 +71,7 @@ export default function GroupExpensesList({
 
   useEffect(() => {
     fetchExpenses();
-  }, [groupId, refreshTrigger]);
+  }, [groupId, refreshTrigger, fetchExpenses]);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase();

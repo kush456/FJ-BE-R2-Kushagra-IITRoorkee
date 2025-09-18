@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPlus, Users, Mail } from "lucide-react";
+import { UserPlus, Users, Mail } from "lucide-react";
 import { AddFriendDialog } from "@/components/dialogs/friends/AddFriendDialog";
 import { FriendList } from "./FriendList";
 import { FriendRequestList } from "./FriendRequestList";

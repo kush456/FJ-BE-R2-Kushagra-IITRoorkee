@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { ChevronRight, Users } from 'lucide-react';
 
 interface Group {
@@ -49,7 +48,7 @@ const GroupOverview: React.FC<{ userId: string }> = ({ userId }) => {
       })
     ).then(results => {
       let allBalances: GroupBalance[] = [];
-      let allSettlements: Record<string, Settlement[]> = {};
+      const allSettlements: Record<string, Settlement[]> = {};
       results.forEach(r => {
         if (!r) return;
         allBalances = allBalances.concat(r.balances);

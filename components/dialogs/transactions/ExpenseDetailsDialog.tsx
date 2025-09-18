@@ -243,9 +243,9 @@ export function ExpenseDetailsDialog({
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-600">
-                  {getUserParticipant()!.netBalance > 0 && "You're owed money"}
+                  {getUserParticipant()!.netBalance > 0 && "You&apos;re owed money"}
                   {getUserParticipant()!.netBalance < 0 && "You owe money"}
-                  {getUserParticipant()!.netBalance === 0 && "You're settled up"}
+                  {getUserParticipant()!.netBalance === 0 && "You&apos;re settled up"}
                 </div>
               </div>
             )}

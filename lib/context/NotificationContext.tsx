@@ -12,7 +12,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const fetchPendingRequests = useCallback(async () => {
     if (status === 'authenticated') {
