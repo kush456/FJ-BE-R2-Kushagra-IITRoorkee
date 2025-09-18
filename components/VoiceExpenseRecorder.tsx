@@ -245,7 +245,7 @@ export const VoiceTransactionRecorder: React.FC<VoiceTransactionRecorderProps> =
         
         {isRecording && (
           <Button 
-            onClick={stopRecording}
+            onClick={() => stopRecording()}
             size="lg"
             className="bg-gray-500 hover:bg-gray-600 text-white rounded-full p-4"
           >

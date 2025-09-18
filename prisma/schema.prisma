@@ -22,21 +22,27 @@ model User {
   transactions Transaction[]
   categories Category[]
   accounts   Account[]
+
+  // --- NEW FIELDS FOR FRIENDS & SPLITTING ---
+  sentFriendRequests     Friendship[]   @relation("SentRequests")
+  receivedFriendRequests Friendship[]   @relation("ReceivedRequests")
+  expenseSplits          ExpenseSplit[]
 }
 
 model Account {
   id                 String    @id @default(cuid())
   userId             String
-  providerType       String
-  provider         String
-  providerAccountId  String
-  refreshToken       String?
-  accessToken        String?
-  accessTokenExpires DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  user               User      @relation(fields: [userId], references: [id])
+  provider            String
+  providerAccountId   String
+  refreshToken        String?
+  accessToken         String?
+  expiresAt          Int?
+  tokenType          String?
+  scope               String?
+  idToken             String?
+  sessionState        String?
 
+  user   User    @relation(fields: [userId], references: [id])
   @@unique([provider, providerAccountId])
 }
 
@@ -51,15 +57,66 @@ model Transaction {
   description String?
   date        DateTime @default(now())
   receipt     String? // URL of the uploaded receipt
+
+  // --- NEW FIELD FOR SPLITTING ---
+  // Link to a shared expense if this transaction was split
+  sharedExpense SharedExpense?
 }
 
 model Category {
   id     String  @id @default(uuid())
-  name   String
-  type   String  // "income" | "expense"
   userId String
+  name   String
+  type   String   // "income" or "expense"
   user   User    @relation(fields: [userId], references: [id])
   transactions Transaction[]
   budget Int?
 }
+
+// --- NEW MODELS FOR FRIENDS & BILL SPLITTING ---
+
+model Friendship {
+  id           String   @id @default(uuid())
+  requesterId  String
+  receiverId   String
+  status       String   // "PENDING", "ACCEPTED", "BLOCKED"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  requester User @relation("SentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, receiverId]) // Prevents duplicate friend requests
+}
+
+// Represents a transaction that is shared among friends
+model SharedExpense {
+  id            String   @id @default(uuid())
+  transactionId String   @unique // Links to the original transaction record
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  description   String
+  createdAt     DateTime @default(now())
+  
+  // The individual splits that make up this shared expense
+  splits        ExpenseSplit[]
+}
+
+// Details how a single shared expense is split among users
+// Details how a single shared expense is split among users
+model ExpenseSplit {
+  id              String   @id @default(uuid())
+  sharedExpenseId String
+  sharedExpense   SharedExpense @relation(fields: [sharedExpenseId], references: [id], onDelete: Cascade)
+  userId          String   // The user this split portion belongs to
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amountPaid      Decimal  // How much this user actually paid (e.g., $100)
+  amountOwed      Decimal  // How much this user's share of the bill is (e.g., $25)
+  
+  // A calculated field for easy balance checking: amountPaid - amountOwed
+  // A positive value means they are owed money; negative means they owe money.
+  netBalance      Decimal  
+  settled         Boolean  @default(false) // Whether this split has been settled
+}
+
 
