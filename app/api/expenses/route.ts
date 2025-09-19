@@ -3,6 +3,117 @@ import { prisma } from '@/lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { getServerSession } from 'next-auth';
 
+// Heap implementation for debt minimization
+class MinHeap {
+  private heap: any[] = [];
+  
+  push(val: any) {
+    this.heap.push(val);
+    this.heapifyUp(this.heap.length - 1);
+  }
+  
+  pop() {
+    if (this.heap.length === 0) return null;
+    if (this.heap.length === 1) return this.heap.pop();
+    
+    const min = this.heap[0];
+    this.heap[0] = this.heap.pop()!;
+    this.heapifyDown(0);
+    return min;
+  }
+  
+  peek() {
+    return this.heap.length > 0 ? this.heap[0] : null;
+  }
+  
+  size() {
+    return this.heap.length;
+  }
+  
+  private heapifyUp(index: number) {
+    if (index === 0) return;
+    const parentIndex = Math.floor((index - 1) / 2);
+    if (this.heap[parentIndex].amount > this.heap[index].amount) {
+      [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
+      this.heapifyUp(parentIndex);
+    }
+  }
+  
+  private heapifyDown(index: number) {
+    const leftChild = 2 * index + 1;
+    const rightChild = 2 * index + 2;
+    let smallest = index;
+    
+    if (leftChild < this.heap.length && this.heap[leftChild].amount < this.heap[smallest].amount) {
+      smallest = leftChild;
+    }
+    
+    if (rightChild < this.heap.length && this.heap[rightChild].amount < this.heap[smallest].amount) {
+      smallest = rightChild;
+    }
+    
+    if (smallest !== index) {
+      [this.heap[smallest], this.heap[index]] = [this.heap[index], this.heap[smallest]];
+      this.heapifyDown(smallest);
+    }
+  }
+}
+
+class MaxHeap {
+  private heap: any[] = [];
+  
+  push(val: any) {
+    this.heap.push(val);
+    this.heapifyUp(this.heap.length - 1);
+  }
+  
+  pop() {
+    if (this.heap.length === 0) return null;
+    if (this.heap.length === 1) return this.heap.pop();
+    
+    const max = this.heap[0];
+    this.heap[0] = this.heap.pop()!;
+    this.heapifyDown(0);
+    return max;
+  }
+  
+  peek() {
+    return this.heap.length > 0 ? this.heap[0] : null;
+  }
+  
+  size() {
+    return this.heap.length;
+  }
+  
+  private heapifyUp(index: number) {
+    if (index === 0) return;
+    const parentIndex = Math.floor((index - 1) / 2);
+    if (this.heap[parentIndex].amount < this.heap[index].amount) {
+      [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
+      this.heapifyUp(parentIndex);
+    }
+  }
+  
+  private heapifyDown(index: number) {
+    const leftChild = 2 * index + 1;
+    const rightChild = 2 * index + 2;
+    let largest = index;
+    
+    if (leftChild < this.heap.length && this.heap[leftChild].amount > this.heap[largest].amount) {
+      largest = leftChild;
+    }
+    
+    if (rightChild < this.heap.length && this.heap[rightChild].amount > this.heap[largest].amount) {
+      largest = rightChild;
+    }
+    
+    if (largest !== index) {
+      [this.heap[largest], this.heap[index]] = [this.heap[index], this.heap[largest]];
+      this.heapifyDown(largest);
+    }
+  }
+}
+
 // GET /api/expenses - Get user's expenses (both group and one-off)
 export async function GET() {
   try {
@@ -129,26 +240,43 @@ export async function POST(req: NextRequest) {
       // Create new settlements
       await prisma.settlement.createMany({ data: settlements });
     } else {
-      // Handle ONE-OFF EXPENSES - Create direct settlements between participants
+      // Handle ONE-OFF EXPENSES - Create direct settlements between participants using heaps
       const settlementsToCreate = [];
       
-      // Find all participants who owe money (negative net balance)
-      const debtors = participants.filter((p: any) => (p.paid - p.share) < -0.01);
-      // Find all participants who should be paid (positive net balance)  
-      const creditors = participants.filter((p: any) => (p.paid - p.share) > 0.01);
+      // Create heaps for optimal debt minimization
+      const debtorHeap = new MinHeap(); // Min heap for debtors (smallest debt first)
+      const creditorHeap = new MaxHeap(); // Max heap for creditors (largest credit first)
+      
+      // Populate heaps with participants
+      participants.forEach((p: any) => {
+        const netBalance = p.paid - p.share;
+        if (netBalance < -0.01) {
+          // Debtor: use absolute value for min heap
+          debtorHeap.push({
+            userId: p.userId,
+            amount: Math.abs(netBalance),
+            participant: p
+          });
+        } else if (netBalance > 0.01) {
+          // Creditor: use positive value for max heap
+          creditorHeap.push({
+            userId: p.userId,
+            amount: netBalance,
+            participant: p
+          });
+        }
+      });
 
-      // Simple debt minimization for one-off expenses
-      for (const debtor of debtors) {
-        let debtRemaining = Math.abs(debtor.paid - debtor.share);
+      // Process settlements using heaps for optimal debt minimization
+      while (debtorHeap.size() > 0 && creditorHeap.size() > 0) {
+        const debtor = debtorHeap.pop();
+        const creditor = creditorHeap.pop();
         
-        for (const creditor of creditors) {
-          if (debtRemaining <= 0.01) break;
-          
-          const creditAvailable = creditor.paid - creditor.share;
-          if (creditAvailable <= 0.01) continue;
-          
-          const settlementAmount = Math.min(debtRemaining, creditAvailable);
-          
+        if (!debtor || !creditor) break;
+        
+        const settlementAmount = Math.min(debtor.amount, creditor.amount);
+        
+        if (settlementAmount > 0.01) {
           settlementsToCreate.push({
             fromUserId: debtor.userId,
             toUserId: creditor.userId,
@@ -157,9 +285,26 @@ export async function POST(req: NextRequest) {
             amount: settlementAmount,
             status: 'PENDING'
           });
-          
-          debtRemaining -= settlementAmount;
-          creditor.paid -= settlementAmount; // Reduce available credit
+        }
+        
+        // Update remaining amounts and re-insert if needed
+        const remainingDebt = debtor.amount - settlementAmount;
+        const remainingCredit = creditor.amount - settlementAmount;
+        
+        if (remainingDebt > 0.01) {
+          debtorHeap.push({
+            userId: debtor.userId,
+            amount: remainingDebt,
+            participant: debtor.participant
+          });
+        }
+        
+        if (remainingCredit > 0.01) {
+          creditorHeap.push({
+            userId: creditor.userId,
+            amount: remainingCredit,
+            participant: creditor.participant
+          });
         }
       }
 
